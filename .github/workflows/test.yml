@@ -1,0 +1,39 @@
+name: Deploy to Cloud Functions
+
+on:
+  push:
+    branches:
+      - main  # mainブランチにプッシュされたときにデプロイを実行
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # リポジトリをチェックアウト
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Google Cloud SDKのセットアップ
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}  # GitHub SecretsからプロジェクトIDを取得
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}  # サービスアカウントキーを取得
+        export_default_credentials: true
+
+    # 必要なPythonバージョンのセットアップ（オプション）
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    # Cloud Functionsへのデプロイ
+    - name: Deploy to Cloud Functions
+      run: |
+        gcloud functions deploy ogasawara_test \
+          --runtime python39 \
+          --trigger-http \
+          --allow-unauthenticated \
+          --region asia-northeast1 \
+
